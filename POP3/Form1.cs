@@ -73,7 +73,6 @@ namespace POP3
             {
                 mailListBox.Items.Add(client.messages[key].Subject);
             }
-            mailListBox.Items.RemoveAt(0);
         }
         void ReadConfig()
         {
