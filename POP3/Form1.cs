@@ -22,18 +22,7 @@ namespace POP3
 
         private void refreshMailButton_Click(object sender, EventArgs e)
         {
-            client.RefreshAll();
-            RebuildList();
-            if (client.ShouldNotify())
-            {
-                this.Invoke(new Action(() => newMailLabel.Text = "NEW MAIL"));
-                
-            }
-            else
-            {
-                this.Invoke(new Action(() => newMailLabel.Text = "No new mail :("));
-
-            }
+            RefreshMail();
         }
         void RefreshMail()
         {
@@ -67,7 +56,7 @@ namespace POP3
             client = new Pop3Client(user,password, url, port); //albo 110
             refreshMailButton.Enabled = true;
             connectButton.Enabled = false;
-            Refresh();
+            RefreshMail();
             SetUpTimer(); //na razie nie działa
         }
 
