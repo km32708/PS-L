@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Threading;
 using System.Timers;
 
 namespace POP3
@@ -25,11 +26,13 @@ namespace POP3
             RebuildList();
             if (client.ShouldNotify())
             {
-                newMailLabel.Text = "NEW MAIL";
+                this.Invoke(new Action(() => newMailLabel.Text = "NEW MAIL"));
+                
             }
             else
             {
-                newMailLabel.Text = "No new mail";
+                this.Invoke(new Action(() => newMailLabel.Text = "No new mail :("));
+
             }
         }
         void RefreshMail()
@@ -38,11 +41,13 @@ namespace POP3
             RebuildList();
             if (client.ShouldNotify())
             {
-                newMailLabel.Text = "NEW MAIL";
+                this.Invoke(new Action(() => newMailLabel.Text = "NEW MAIL"));
+
             }
             else
             {
-                newMailLabel.Text = "No new mail";
+                this.Invoke(new Action(() => newMailLabel.Text = "No new mail :("));
+
             }
         }
         public Form1()
@@ -63,15 +68,17 @@ namespace POP3
             refreshMailButton.Enabled = true;
             connectButton.Enabled = false;
             Refresh();
-            //SetUpTimer(); //na razie nie działa
+            SetUpTimer(); //na razie nie działa
         }
 
         void RebuildList()
         {
-            mailListBox.Items.Clear();
+
+            this.Invoke(new Action(() => mailListBox.Items.Clear()));
             foreach (string key in client.messages.Keys)
             {
-                mailListBox.Items.Add(client.messages[key].Subject);
+                this.Invoke(new Action(() => mailListBox.Items.Add(client.messages[key].Subject)));
+                
             }
         }
         void ReadConfig()
