@@ -1,6 +1,6 @@
 # Programowanie sieciowe - Laboratoria - Mariusz Kozłowski
 
-- [ ] POP3
+- [x] POP3
 - [ ] SMTP
 - [ ] FTP
 - [ ] crawler
