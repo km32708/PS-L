@@ -41,6 +41,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.currentDirListView = new System.Windows.Forms.ListView();
             this.upButton = new System.Windows.Forms.Button();
+            this.goButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.portNumeric)).BeginInit();
             this.SuspendLayout();
             // 
@@ -131,15 +132,15 @@
             // 
             // currentPathTextBox
             // 
-            this.currentPathTextBox.Location = new System.Drawing.Point(83, 88);
+            this.currentPathTextBox.Location = new System.Drawing.Point(83, 86);
             this.currentPathTextBox.Name = "currentPathTextBox";
-            this.currentPathTextBox.Size = new System.Drawing.Size(308, 20);
+            this.currentPathTextBox.Size = new System.Drawing.Size(265, 20);
             this.currentPathTextBox.TabIndex = 10;
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(9, 92);
+            this.label5.Location = new System.Drawing.Point(9, 90);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(68, 13);
             this.label5.TabIndex = 11;
@@ -162,7 +163,7 @@
             // 
             // upButton
             // 
-            this.upButton.Location = new System.Drawing.Point(397, 86);
+            this.upButton.Location = new System.Drawing.Point(397, 83);
             this.upButton.Name = "upButton";
             this.upButton.Size = new System.Drawing.Size(29, 23);
             this.upButton.TabIndex = 13;
@@ -170,11 +171,22 @@
             this.upButton.UseVisualStyleBackColor = true;
             this.upButton.Click += new System.EventHandler(this.upButton_Click);
             // 
+            // goButton
+            // 
+            this.goButton.Location = new System.Drawing.Point(354, 83);
+            this.goButton.Name = "goButton";
+            this.goButton.Size = new System.Drawing.Size(37, 23);
+            this.goButton.TabIndex = 14;
+            this.goButton.Text = "Go";
+            this.goButton.UseVisualStyleBackColor = true;
+            this.goButton.Click += new System.EventHandler(this.goButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(438, 357);
+            this.Controls.Add(this.goButton);
             this.Controls.Add(this.upButton);
             this.Controls.Add(this.currentDirListView);
             this.Controls.Add(this.label5);
@@ -211,6 +223,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ListView currentDirListView;
         private System.Windows.Forms.Button upButton;
+        private System.Windows.Forms.Button goButton;
     }
 }
 

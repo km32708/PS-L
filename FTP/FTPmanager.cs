@@ -28,6 +28,7 @@ namespace FTP
         public bool IsEverythingOk = true;
         public string pwd = " ";
         public List<string> pwl; //pwd list
+        public List<string> pwnl; //pwd nlst
         string lastMessage = " ";
         string lastMessageSecondary = " ";
 
@@ -81,7 +82,14 @@ namespace FTP
        
         void Wbtc() //write buffer to console
         {
-            lastMessage = reader.ReadLine();
+            try
+            {
+                lastMessage = reader.ReadLine();
+            }
+            catch
+            {
+                return;
+            }
             while (reader.Peek() >= 0)
             {
                 Console.WriteLine("<-- " + lastMessage);
@@ -100,10 +108,18 @@ namespace FTP
             {
                 return;
             }
-            lastMessageSecondary = readerSecondary.ReadLine();
+            try
+            {
+                lastMessageSecondary = readerSecondary.ReadLine();
+            }
+            catch 
+            {
+
+                return;
+            }
             while (readerSecondary.Peek() >= 0)
             {
-                Console.WriteLine("<2-- " + lastMessageSecondary);
+                Console.WriteLine("<2- " + lastMessageSecondary);
                 if (readerSecondary.EndOfStream)
                 {
                     break;
@@ -177,6 +193,29 @@ namespace FTP
 
             pwl = ParseSecondaryBufferAsList();
 
+            Wlf("PASV");
+            Wbtc();
+            Wbtc(); //transfer ok
+            portSecondary = CalculatePortByResponse(lastMessage);
+
+
+
+            clientSecondary = new TcpClient();
+            clientSecondary.Connect(_address, portSecondary);
+            streamSecondary = clientSecondary.GetStream();
+            //stream.AuthenticateAsClient(address);
+            writerSecondary = new StreamWriter(streamSecondary);
+            readerSecondary = new StreamReader(streamSecondary);
+
+            //Wsbtc();
+
+            Wlf("NLST");
+            Wbtc();
+            Wbtc();
+
+            pwnl = ParseSecondaryBufferAsList();
+
+            return;
 
         }
         public void ChangePwd(string newDir) //full path
@@ -184,6 +223,7 @@ namespace FTP
             Wlf("CWD " + newDir);
             Wbtc();
             RefreshPwd();
+            RefreshList();
         }
         public void ChangePwdUp()
         {
@@ -191,6 +231,7 @@ namespace FTP
             Wbtc();
 
             RefreshPwd();
+            RefreshList();
         }
     }
     
