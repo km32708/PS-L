@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace FTP
 {
     public partial class MainForm : Form
     {
-        string user, password, address;
-        int port;
-        FTPmanager FTPclient;
+        private string user, password, address;
+        private int port;
+        private FTPmanager FTPclient;
+
         public MainForm()
         {
             InitializeComponent();
@@ -28,7 +23,7 @@ namespace FTP
             RefreshView();
         }
 
-        private void RefreshView()
+        private void RefreshView() //refreshes current view using FTPClient's current data
         {
             currentPathTextBox.Text = FTPclient.pwd;
             currentDirListView.Clear();
@@ -40,18 +35,19 @@ namespace FTP
 
         private void currentDirListView_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (currentDirListView.SelectedItems.Count > 0)
+            if (currentDirListView.SelectedItems.Count == 1)
             {
                 ListViewItem selectedItem = currentDirListView.SelectedItems[0];
                 string selectedItemString = selectedItem.SubItems[0].Text;
-                if (selectedItemString[0]!='d')
+                if (selectedItemString[0] != 'd')
                 {
                     MessageBox.Show("Can't move to non-directory!");
                     return;
                 }
-                int selectedItemInd = currentDirListView.SelectedIndices[0];
 
-                if (FTPclient.pwd.Last() =='/')
+                int selectedItemInd = currentDirListView.SelectedIndices[0];
+                //switching folders by full list's item index but using only item name
+                if (FTPclient.pwd.Last() == '/')
                 {
                     FTPclient.ChangePwd(FTPclient.pwd + FTPclient.pwnl[selectedItemInd] + "/");
                 }
@@ -60,7 +56,7 @@ namespace FTP
                     FTPclient.ChangePwd(FTPclient.pwd + "/" + FTPclient.pwnl[selectedItemInd] + "/");
                 }
 
-                RefreshView(); 
+                RefreshView();
             }
         }
 
@@ -76,14 +72,14 @@ namespace FTP
             RefreshView();
         }
 
-        private void LoadConfig()
+        private void LoadConfig() //config is (line by line): user, pass, server address, main server port
         {
             string name = "config.ini";
             int i = 0;
             if (!File.Exists(Path.GetFullPath(name)))
             {
                 return;
-            }            
+            }
             using (FileStream fileStream = File.OpenRead(Path.GetFullPath(name)))
             using (StreamReader streamReader = new StreamReader(fileStream))
             {
@@ -95,15 +91,19 @@ namespace FTP
                         case 0:
                             user = line;
                             break;
+
                         case 1:
                             password = line;
                             break;
+
                         case 2:
                             address = line;
                             break;
+
                         case 3:
                             port = int.Parse(line);
                             break;
+
                         default:
                             break;
                     }

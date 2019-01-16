@@ -1,86 +1,90 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Sockets;
-using System.Net.Security;
-using System.Net;
 using System.IO;
+using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
 namespace FTP
 {
-    class FTPmanager
+    internal class FTPmanager
     {
-        TcpClient client;
-        NetworkStream stream;
-        StreamReader reader;
-        StreamWriter writer;
+        private TcpClient client;
+        private NetworkStream stream;
+        private StreamReader reader;
+        private StreamWriter writer;
 
-        TcpClient clientSecondary;
-        NetworkStream streamSecondary;
-        StreamReader readerSecondary;
-        StreamWriter writerSecondary;
+        private TcpClient clientSecondary;
+        private NetworkStream streamSecondary;
+        private StreamReader readerSecondary;
+        private StreamWriter writerSecondary;
 
-        string _address;
+        private string _address;
 
         public bool IsEverythingOk = true;
         public string pwd = " ";
         public List<string> pwl; //pwd list
         public List<string> pwnl; //pwd nlst
-        string lastMessage = " ";
-        string lastMessageSecondary = " ";
-
+        private string lastMessage = " ";
+        private string lastMessageSecondary = " ";
 
         ~FTPmanager()
         {
-            if (writer!=null)
+            if (writer != null)
             {
                 writer.WriteLine("QUIT");
                 Wbtc();
             }
         }
+
         public FTPmanager(string user, string password, string address, int port)
         {
-            _address = address;
+            _address = address; //saved, we'll need that later
 
-            client = new TcpClient();
-            client.Connect(address, port);
-            stream = client.GetStream();
-            //stream.AuthenticateAsClient(address);
-            writer = new StreamWriter(stream);
-            reader = new StreamReader(stream);
+            try
+            {
+                //opening first stream, no ssl this time
+                client = new TcpClient();
+                client.Connect(address, port);
+                stream = client.GetStream();
+                writer = new StreamWriter(stream);
+                reader = new StreamReader(stream);
+            }
+            catch
+            {
+                IsEverythingOk = false;
+                return;
+            }
 
+            //cleanup buffer
             Wbtc();
             Wbtc();
+
             if (!IsOk(ReplyCode(lastMessage)))
             {
                 IsEverythingOk = false;
                 return;
             }
 
+            //login
             Wlf("USER " + user);
             Wbtc();
 
             Wlf("PASS " + password);
             Wbtc();
 
+            //initial refresh
             RefreshPwd();
-
-            
-
             RefreshList();
-
         }
-        void Wlf(string line) //write line and flush
+
+        private void Wlf(string line) //write line and flush
         {
             Console.WriteLine("--> " + line);
             writer.WriteLine(line);
             writer.Flush();
         }
-       
-        void Wbtc() //write buffer to console
+
+        private void Wbtc() //write buffer to console
         {
             try
             {
@@ -102,9 +106,9 @@ namespace FTP
             Console.WriteLine("<-- " + lastMessage);
         }
 
-        void Wsbtc() //write secondary buffer to console
+        private void Wsbtc() //write secondary buffer to console
         {
-            if (readerSecondary==null)
+            if (readerSecondary == null)
             {
                 return;
             }
@@ -112,9 +116,8 @@ namespace FTP
             {
                 lastMessageSecondary = readerSecondary.ReadLine();
             }
-            catch 
+            catch
             {
-
                 return;
             }
             while (readerSecondary.Peek() >= 0)
@@ -129,15 +132,17 @@ namespace FTP
             Console.WriteLine("<2- " + lastMessageSecondary);
         }
 
-        int ReplyCode(string responseLine)
+        private int ReplyCode(string responseLine) //self-explainatory
         {
             return int.Parse(responseLine.Substring(0, 3));
         }
-        bool IsOk(int Code)
+
+        private bool IsOk(int Code)
         {
             return ((Code / 100) == 2);
         }
-        public void RefreshPwd()
+
+        public void RefreshPwd() //runs pwd and updates class variable
         {
             Wlf("PWD");
             Wbtc();
@@ -149,13 +154,15 @@ namespace FTP
             MatchCollection Matches = Regex.Matches(lastMessage, "\\\"(.*?)\\\"");
             pwd = Matches[0].ToString().Trim('"');
         }
-        int CalculatePortByResponse(string Response)
+
+        private int CalculatePortByResponse(string Response) //for listing with list and nlst
         {
             string NumberString = Response.Split('(', ')')[1];
             var Numbers = NumberString.Split(',');
             return ((int.Parse(Numbers[4]) * 256) + int.Parse(Numbers[5]));
         }
-        List<string> ParseSecondaryBufferAsList()
+
+        private List<string> ParseSecondaryBufferAsList() //splits secondary buffer line by line, for listing with list and nlst
         {
             List<string> result = new List<string>();
             lastMessageSecondary = readerSecondary.ReadLine();
@@ -171,22 +178,27 @@ namespace FTP
             result.Add(lastMessageSecondary);
             return result;
         }
-        public void RefreshList()
+
+        public void RefreshList() //refreshes current list and nlst lists in class' variables
         {
             Wlf("PASV");
             Wbtc();
+
             int portSecondary = CalculatePortByResponse(lastMessage);
 
-            
-
-            clientSecondary = new TcpClient();
-            clientSecondary.Connect(_address, portSecondary);
-            streamSecondary = clientSecondary.GetStream();
-            //stream.AuthenticateAsClient(address);
-            writerSecondary = new StreamWriter(streamSecondary);
-            readerSecondary = new StreamReader(streamSecondary);
-
-            //Wsbtc();
+            try
+            {
+                clientSecondary = new TcpClient();
+                clientSecondary.Connect(_address, portSecondary);
+                streamSecondary = clientSecondary.GetStream();
+                writerSecondary = new StreamWriter(streamSecondary);
+                readerSecondary = new StreamReader(streamSecondary);
+            }
+            catch
+            {
+                IsEverythingOk = false;
+                return;
+            }
 
             Wlf("LIST");
             Wbtc();
@@ -196,35 +208,39 @@ namespace FTP
             Wlf("PASV");
             Wbtc();
             Wbtc(); //transfer ok
+
+            //now same thing with just items' names
             portSecondary = CalculatePortByResponse(lastMessage);
 
-
-
-            clientSecondary = new TcpClient();
-            clientSecondary.Connect(_address, portSecondary);
-            streamSecondary = clientSecondary.GetStream();
-            //stream.AuthenticateAsClient(address);
-            writerSecondary = new StreamWriter(streamSecondary);
-            readerSecondary = new StreamReader(streamSecondary);
-
-            //Wsbtc();
+            try
+            {
+                clientSecondary = new TcpClient();
+                clientSecondary.Connect(_address, portSecondary);
+                streamSecondary = clientSecondary.GetStream();
+                writerSecondary = new StreamWriter(streamSecondary);
+                readerSecondary = new StreamReader(streamSecondary);
+            }
+            catch
+            {
+                IsEverythingOk = false;
+                return;
+            }
 
             Wlf("NLST");
             Wbtc();
             Wbtc();
 
             pwnl = ParseSecondaryBufferAsList();
-
-            return;
-
         }
-        public void ChangePwd(string newDir) //full path
+
+        public void ChangePwd(string newDir) //changes pwd, needs full path
         {
             Wlf("CWD " + newDir);
             Wbtc();
             RefreshPwd();
             RefreshList();
         }
+
         public void ChangePwdUp()
         {
             Wlf("CDUP");
@@ -234,5 +250,4 @@ namespace FTP
             RefreshList();
         }
     }
-    
 }
